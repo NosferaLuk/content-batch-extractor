@@ -1,0 +1,11 @@
+# Arquivos gerados pela extração
+relatorio_fortics.json
+
+# Sistema operacional
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Logs e temporários
+*.log
+*.tmp
