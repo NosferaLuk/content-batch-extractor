@@ -4,11 +4,23 @@ Uma suíte de automação em duas etapas (JavaScript + PowerShell) para **extrai
 
 ---
 
+## 🧩 Contexto — o modelo de conteúdo do Fortics IA
+
+Este projeto é **específico da plataforma Fortics IA / Genier**. Entender o modelo de dados da plataforma é o que dá sentido à ferramenta.
+
+O Fortics IA se apoia em quatro pilares: **Conteúdos**, **Base de Conhecimento**, **Agentes** e **Workflow**.
+
+- **Conteúdos** são a **matéria-prima**. Ficam organizados em **Fontes de Dados**, criadas no menu **Meus Conteúdos**. Cada Fonte agrupa os materiais de um tema/processo — textos online, arquivos (PDF, imagens, Office), conteúdo estruturado (CSV/SQL), páginas Web, vídeos do YouTube e mídias por URL.
+- **Base de Conhecimento** reúne conteúdos selecionados em um contexto (ex.: Suporte, Comercial).
+- **Agentes** respondem consultando apenas as Bases de Conhecimento associadas a eles.
+
+Em resumo: os **materiais** cadastrados nas fontes viram **conhecimento** que os **agentes** consomem.
+
+> Referências oficiais: [Entendendo o Fortics IA](https://docs.fortics.com.br/gestao-and-operacao/gestao-do-ecossistema/entendendo-o-fortics-ia.md) · [Como adicionar conteúdos](https://docs.fortics.com.br/gestao-and-operacao/tutoriais/fortics-ia/gerenciando-conteudo/como-adicionar-conteudos-na-fortics-ia.md).
+
 ## 🚀 O problema
 
-Na plataforma **Fortics IA / Genier**, todo o conteúdo que já está **em produção** fica na tela de **Fontes** — `https://app.genier.ai/{tenant}/sources/`, acessível pelo menu **Meus conteúdos**.
-
-A plataforma **não oferece exportação em lote**. Para tirar um backup (ou migrar) desse conteúdo, é preciso abrir cada pasta, clicar em cada texto ou imagem e salvar arquivo por arquivo manualmente — dezenas (às vezes centenas) de cliques, sem nenhum controle de integridade sobre o que foi ou não baixado.
+A tela **Meus Conteúdos** (`https://app.genier.ai/{tenant}/sources/`) lista as **Fontes de Dados** com os materiais já **em produção**. A plataforma **não oferece exportação em lote**: para tirar um backup (ou migrar) desses materiais é preciso abrir cada fonte, clicar em cada texto/imagem e salvar um por um — dezenas (às vezes centenas) de cliques, sem nenhum controle de integridade sobre o que foi ou não baixado.
 
 Foi exatamente essa limitação que motivou este projeto.
 
@@ -16,17 +28,19 @@ Foi exatamente essa limitação que motivou este projeto.
 
 Uma automação em duas etapas que transforma esse trabalho manual em um único comando:
 
-1. **Extrator JS** (`src/fortics_extractor.js`): um script de console que simula a navegação humana, mapeia a estrutura de pastas, baixa todos os arquivos sequencialmente e gera um "mapa" (`relatorio_fortics.json`).
-2. **Organizador PowerShell** (`src/organize_and_validate.ps1`): lê o mapa JSON, recria a exata estrutura de pastas localmente, move os arquivos baixados e valida a integridade para garantir que nada foi perdido.
+1. **Extrator JS** (`src/fortics_extractor.js`): um script de console que simula a navegação humana, percorre as Fontes de Dados, baixa todos os materiais sequencialmente e gera um "mapa" (`relatorio_fortics.json`).
+2. **Organizador PowerShell** (`src/organize_and_validate.ps1`): lê o mapa JSON, recria a exata estrutura de Fontes localmente, move os arquivos baixados e valida a integridade para garantir que nada foi perdido.
 
 ### O que o extrator faz, por baixo dos panos
 
 1. Ajusta a paginação nativa da tela para exibir **50 itens** por página.
-2. Percorre **cada pasta** de conteúdo.
-3. Para **imagens**: abre o preview da imagem e baixa o arquivo exibido (`img[src*="file_content"]`).
-4. Para **textos**: abre o editor e captura o título (`input[name="name"]`) e o corpo (`textarea[name="content"]`).
-5. Fecha o modal e retorna à raiz de conteúdos para processar a próxima pasta.
+2. Percorre **cada Fonte de Dados** (o script a chama de "pasta" no relatório).
+3. Para **imagens/materiais**: abre o preview e baixa o arquivo exibido (`img[src*="file_content"]`).
+4. Para **textos online**: abre o editor e captura o título (`input[name="name"]`) e o corpo (`textarea[name="content"]`).
+5. Fecha o modal e retorna à raiz de conteúdos para processar a próxima Fonte.
 6. Ao final, gera o `relatorio_fortics.json` — usado pela etapa 2 para reorganizar e conferir tudo localmente.
+
+> Escopo: este utilitário cobre **textos online** e **arquivos/imagens** por upload. Fontes dinâmicas (Web, YouTube, CSV/SQL e mídias por URL) são referências externas e não fazem parte do escopo atual.
 
 ---
 
@@ -42,7 +56,7 @@ Uma automação em duas etapas que transforma esse trabalho manual em um único 
 
 ### Passo 1 — Extração (Navegador)
 
-1. Acesse sua conta na plataforma Fortics IA / Genier e navegue até a tela de **Fontes / Meus conteúdos** (`https://app.genier.ai/{seu-tenant}/sources/`).
+1. Acesse sua conta na plataforma Fortics IA / Genier e navegue até **Meus Conteúdos** (as Fontes de Dados) em `https://app.genier.ai/{seu-tenant}/sources/`.
 2. Pressione `F12` para abrir o Developer Tools e acesse a aba **Console**.
 3. Copie o conteúdo de `src/fortics_extractor.js` e cole no console.
 4. Pressione `Enter`. O script começará a iterar sobre as pastas e baixar os arquivos.
