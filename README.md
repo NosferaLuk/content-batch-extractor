@@ -40,7 +40,7 @@ Uma automação em duas etapas que transforma esse trabalho manual em um único 
 5. Fecha o modal e retorna à raiz de conteúdos para processar a próxima Fonte.
 6. Ao final, gera o `relatorio_fortics.json` — usado pela etapa 2 para reorganizar e conferir tudo localmente.
 
-> Escopo: este utilitário cobre **textos online** e **arquivos/imagens** por upload. Fontes dinâmicas (Web, YouTube, CSV/SQL e mídias por URL) são referências externas e não fazem parte do escopo atual.
+> Escopo — **limitado a 2 tipos**: o utilitário extrai **textos online** e **imagens**. Documentos (PDF/Office), áudio/vídeo por upload, conteúdo estruturado (CSV/SQL), Web, YouTube e mídias por URL **não são extraídos**. Veja [Limitações conhecidas](#-limitações-conhecidas).
 
 ---
 
@@ -134,8 +134,32 @@ const CONFIG = {
 
 ## ⚠️ Limitações conhecidas
 
-- Depende de seletores CSS e tempos de espera fixos da interface atual; mudanças no layout da plataforma podem exigir ajustes.
-- Os tempos de espera (`sleep`) são conservadores para evitar perda de conteúdo em conexões lentas.
+### O que é extraído (e o que fica de fora)
+
+O script foi feito para os **dois únicos tipos de material legíveis/renderizáveis na tela**: textos online e imagens. Todos os demais tipos de conteúdo da Fonte de Dados **não são exportados**.
+
+| Tipo de material | Aba | Extraído? | Motivo |
+| --- | --- | :---: | --- |
+| Texto online (digitado/editado) | Arquivos | ✅ `.txt` | Lido do editor (`input[name="name"]` + `textarea[name="content"]`). |
+| Imagem (com preview) | Arquivos | ✅ imagem | Baixada do preview (`img[src*="file_content"]`). |
+| Documentos (PDF, DOC/DOCX, XLS/XLSX, PPT/PPTX) | Arquivos | ❌ | Não têm preview de imagem nem `textarea`; a linha não é capturada. |
+| Áudio/vídeo por upload | Arquivos | ❌ | Sem preview/`textarea` acessível ao script. |
+| Estruturado (CSV/SQL) | Estruturado | ❌ | É referência/consulta, não um arquivo baixável na tela. |
+| Páginas Web | Web | ❌ | Referência (URL), não conteúdo armazenado. |
+| Vídeos do YouTube | YouTube | ❌ | Referência (URL). |
+| Áudio e vídeo por URL | Áudio e Vídeo | ❌ | Referência (URL externa). |
+
+> Conclusão: **não é um backup completo da Fonte de Dados** — apenas dos **textos online** e **imagens**.
+
+### Limitações técnicas
+
+- Depende de seletores CSS e do atributo `hx-get` da interface atual; mudanças no layout da plataforma podem exigir ajustes.
+- O nome/extensão do arquivo de imagem vem da URL do preview (`hx-get`); eventualmente a extensão pode faltar ou vir incorreta.
+- Textos são salvos como `.txt` simples, sem preservar formatação, anexos ou links originais.
+- Os tempos de espera (`sleep`) são fixos e conservadores: em conexões lentas pode haver timeout; em conexões rápidas a extração fica mais lenta que o necessário.
+- Extração **sequencial**: uma falha pontual é registrada e o script continua, mas itens podem ser pulados — o `relatorio_fortics.json` indica o que era esperado em cada Fonte.
+- Exige **sessão autenticada** no navegador com a aba aberta; **não usa a API** da plataforma.
+- A retomada é **manual**, ajustando `startPasta`/`startArquivo` no topo do script.
 
 ---
 

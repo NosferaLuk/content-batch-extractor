@@ -2,10 +2,13 @@
  * Fortics IA (Genier) - Content Extractor
  * Autor: @NosferaLuk
  * Descrição: Script para console do navegador que automatiza o download dos materiais
- * (textos online e arquivos/imagens) já em produção nas Fontes de Dados da plataforma
+ * (textos online e imagens) já em produção nas Fontes de Dados da plataforma
  * Fortics IA / Genier (menu "Meus Conteúdos" -> https://app.genier.ai/{tenant}/sources/).
  * Esses materiais são a matéria-prima do conhecimento consumido pelos agentes de IA.
  * A plataforma não oferece export em lote, então o script gera um relatório JSON de integridade.
+ *
+ * Limitações: extrai APENAS textos online e imagens (via preview). NÃO cobre documentos
+ * (PDF/Office), áudio/vídeo por upload, estruturado (CSV/SQL), Web, YouTube nem mídias por URL.
  *
  * Uso: acesse a tela "Meus Conteúdos" (Fontes de Dados), abra o console (F12) e cole este script.
  */
